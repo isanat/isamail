@@ -5,16 +5,14 @@ import { db } from '@/lib/db';
 export async function GET() {
   try {
     const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get('session');
+    const sessionId = cookieStore.get('session')?.value;
 
-    if (!sessionCookie) {
+    if (!sessionId) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
 
-    const session = JSON.parse(sessionCookie.value);
-
     const user = await db.user.findUnique({
-      where: { id: session.userId },
+      where: { id: sessionId },
       include: {
         subscription: true,
         domains: {
@@ -62,13 +60,12 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get('session');
+    const sessionId = cookieStore.get('session')?.value;
 
-    if (!sessionCookie) {
+    if (!sessionId) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
 
-    const session = JSON.parse(sessionCookie.value);
     const body = await request.json();
     const { localPart, domainId, password } = body;
 
@@ -83,7 +80,7 @@ export async function POST(request: Request) {
     const domain = await db.domain.findFirst({
       where: {
         id: domainId,
-        userId: session.userId,
+        userId: sessionId,
         isVerified: true,
       },
     });
@@ -111,7 +108,7 @@ export async function POST(request: Request) {
 
     // Check account limits
     const user = await db.user.findUnique({
-      where: { id: session.userId },
+      where: { id: sessionId },
       include: {
         subscription: true,
         _count: { select: { emailAccounts: true } },
@@ -136,7 +133,7 @@ export async function POST(request: Request) {
     // Create email account
     const emailAccount = await db.emailAccount.create({
       data: {
-        userId: session.userId,
+        userId: sessionId,
         domainId: domain.id,
         email,
         password,

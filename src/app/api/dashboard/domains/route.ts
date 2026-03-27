@@ -5,16 +5,14 @@ import { db } from '@/lib/db';
 export async function GET() {
   try {
     const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get('session');
+    const sessionId = cookieStore.get('session')?.value;
 
-    if (!sessionCookie) {
+    if (!sessionId) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
 
-    const session = JSON.parse(sessionCookie.value);
-
     const user = await db.user.findUnique({
-      where: { id: session.userId },
+      where: { id: sessionId },
       include: {
         domains: {
           orderBy: { createdAt: 'desc' },
@@ -59,13 +57,12 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get('session');
+    const sessionId = cookieStore.get('session')?.value;
 
-    if (!sessionCookie) {
+    if (!sessionId) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
 
-    const session = JSON.parse(sessionCookie.value);
     const body = await request.json();
     const { domain } = body;
 
@@ -94,7 +91,7 @@ export async function POST(request: Request) {
     // Create domain
     const newDomain = await db.domain.create({
       data: {
-        userId: session.userId,
+        userId: sessionId,
         domain,
         isIsamailSubdomain,
         isVerified: isIsamailSubdomain, // Auto-verify isamail subdomains

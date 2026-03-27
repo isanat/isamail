@@ -5,16 +5,14 @@ import { db } from '@/lib/db';
 export async function GET() {
   try {
     const cookieStore = await cookies();
-    const sessionCookie = cookieStore.get('session');
+    const sessionId = cookieStore.get('session')?.value;
 
-    if (!sessionCookie) {
+    if (!sessionId) {
       return NextResponse.json({ error: 'Não autorizado' }, { status: 401 });
     }
 
-    const session = JSON.parse(sessionCookie.value);
-
     const user = await db.user.findUnique({
-      where: { id: session.userId },
+      where: { id: sessionId },
       include: {
         invoices: {
           orderBy: { createdAt: 'desc' },
