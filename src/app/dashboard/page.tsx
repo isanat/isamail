@@ -330,10 +330,12 @@ export default function DashboardPage() {
                       Gerencie seus domínios de email
                     </CardDescription>
                   </div>
-                  <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Adicionar
-                  </Button>
+                  <Link href="/dashboard/domains">
+                    <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Adicionar
+                    </Button>
+                  </Link>
                 </div>
               </CardHeader>
               <CardContent>
@@ -341,9 +343,11 @@ export default function DashboardPage() {
                   <div className="text-center py-8">
                     <Globe className="h-12 w-12 text-slate-600 mx-auto mb-4" />
                     <p className="text-slate-400">Nenhum domínio configurado</p>
-                    <Button variant="link" className="text-emerald-400 mt-2">
-                      Adicionar seu primeiro domínio
-                    </Button>
+                    <Link href="/dashboard/domains">
+                      <Button variant="link" className="text-emerald-400 mt-2">
+                        Adicionar seu primeiro domínio
+                      </Button>
+                    </Link>
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -374,9 +378,11 @@ export default function DashboardPage() {
                             )}
                           </div>
                         </div>
-                        <Button variant="ghost" size="sm" className="text-slate-400 hover:text-white">
-          Configurar
-        </Button>
+                        <Link href={`/dashboard/domains?id=${domain.id}`}>
+                          <Button variant="ghost" size="sm" className="text-slate-400 hover:text-white">
+                            Configurar
+                          </Button>
+                        </Link>
                       </div>
                     ))}
                   </div>
