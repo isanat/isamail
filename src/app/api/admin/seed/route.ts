@@ -114,16 +114,19 @@ async function seedDatabase() {
   }
 
   // Create system settings
-  await db.systemSetting.createMany({
-    data: [
-      { key: "site_name", value: "IsaMail", description: "Nome do site" },
-      { key: "site_url", value: "https://isamail.space", description: "URL do site" },
-      { key: "support_email", value: "suporte@isamail.space", description: "Email de suporte" },
-      { key: "trial_days", value: "14", description: "Dias de trial gratuito" },
-      { key: "currency", value: "BRL", description: "Moeda padrão" },
-    ],
-    skipDuplicates: true,
-  });
+  for (const setting of [
+    { key: "site_name", value: "IsaMail", description: "Nome do site" },
+    { key: "site_url", value: "https://isamail.space", description: "URL do site" },
+    { key: "support_email", value: "suporte@isamail.space", description: "Email de suporte" },
+    { key: "trial_days", value: "14", description: "Dias de trial gratuito" },
+    { key: "currency", value: "BRL", description: "Moeda padrão" },
+  ]) {
+    await db.systemSetting.upsert({
+      where: { key: setting.key },
+      create: setting,
+      update: { value: setting.value },
+    });
+  }
 
   return {
     success: true,
