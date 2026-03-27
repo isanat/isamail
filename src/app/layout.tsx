@@ -14,24 +14,24 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Z.ai Code Scaffold - AI-Powered Development",
-  description: "Modern Next.js scaffold optimized for AI-powered development with Z.ai. Built with TypeScript, Tailwind CSS, and shadcn/ui.",
-  keywords: ["Z.ai", "Next.js", "TypeScript", "Tailwind CSS", "shadcn/ui", "AI development", "React"],
-  authors: [{ name: "Z.ai Team" }],
+  title: "IsaMail - Email Profissional com Domínio Próprio",
+  description: "Serviço de email profissional com domínio próprio. Privacidade, performance e suporte especializado para sua empresa.",
+  keywords: ["IsaMail", "Email profissional", "Domínio próprio", "Email corporativo", "Email empresarial"],
+  authors: [{ name: "IsaMail Team" }],
   icons: {
-    icon: "https://z-cdn.chatglm.cn/z-ai/static/logo.svg",
+    icon: "/logo.svg",
   },
   openGraph: {
-    title: "Z.ai Code Scaffold",
-    description: "AI-powered development with modern React stack",
-    url: "https://chat.z.ai",
-    siteName: "Z.ai",
+    title: "IsaMail - Email Profissional com Domínio Próprio",
+    description: "Serviço de email profissional com domínio próprio. Privacidade, performance e suporte especializado.",
+    url: "https://isamail.space",
+    siteName: "IsaMail",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Z.ai Code Scaffold",
-    description: "AI-powered development with modern React stack",
+    title: "IsaMail - Email Profissional com Domínio Próprio",
+    description: "Serviço de email profissional com domínio próprio. Privacidade, performance e suporte especializado.",
   },
 };
 
@@ -41,9 +41,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="pt-BR" className="dark" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground min-h-screen flex flex-col`}
       >
         {children}
         <Toaster />

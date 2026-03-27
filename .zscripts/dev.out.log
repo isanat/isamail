@@ -218,4 +218,23 @@ Use 'kill 659' to stop it.
  GET / 200 in 25ms (compile: 1941µs, render: 23ms)
  GET / 200 in 23ms (compile: 1965µs, render: 21ms)
  GET / 200 in 24ms (compile: 1805µs, render: 22ms)
- GET / 200 in 24ms (compile: 2ms, render: 21ms)
+==========================================
+[2026-03-27 10:03:15] Starting: bun install
+==========================================
+[BUN] Installing dependencies...
+[0.11ms] ".env"
+bun install v1.3.10 (30e609e0)
+
+Checked 846 installs across 915 packages (no changes) [49.00ms]
+==========================================
+[2026-03-27 10:03:15] Completed: bun install
+[LOG] Step: bun install | Duration: 0s
+==========================================
+
+==========================================
+[2026-03-27 10:03:15] Starting: bun run db:push
+==========================================
+[BUN] Setting up database...
+$ prisma db push
+Failed to load config file "/home/z/my-project" as a TypeScript/JavaScript module. Error: Error: ENOTDIR: not a directory, lstat '/home/z/my-project/.config/prisma'
+error: script "db:push" exited with code 1

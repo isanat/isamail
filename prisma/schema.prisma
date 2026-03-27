@@ -1,9 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,19 +11,154 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String         @id @default(cuid())
+  email         String         @unique
+  name          String
+  password      String
+  phone         String?
+  avatar        String?
+  notifications Boolean        @default(true)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  subscription  Subscription?
+  domains       Domain[]
+  emailAccounts EmailAccount[]
+  invoices      Invoice[]
+
+  @@index([email])
 }
 
-model Post {
+model Subscription {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan              String   // basic, standard, premium, enterprise
+  billingCycle      String   // monthly, yearly
+  status            String   // active, cancelled, expired, pending
+  currentPeriodStart DateTime
+  currentPeriodEnd   DateTime
+  cancelAtPeriodEnd  Boolean @default(false)
+  mercadoPagoId     String?  // MercadoPago subscription/preference ID
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([status])
+  @@index([userId])
+}
+
+model Domain {
+  id                String        @id @default(cuid())
+  userId            String
+  user              User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  domain            String        @unique
+  isVerified        Boolean       @default(false)
+  isIsamailSubdomain Boolean      @default(false)
+  dkimVerified      Boolean       @default(false)
+  spfVerified       Boolean       @default(false)
+  dmarcVerified     Boolean       @default(false)
+  mxVerified        Boolean       @default(false)
+  dkimPublicKey     String?
+  dkimPrivateKey    String?
+  mailuSynced       Boolean       @default(false)
+  mailuSyncError    String?
+  lastDnsCheck      DateTime?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  emailAccounts     EmailAccount[]
+
+  @@index([userId])
+  @@index([domain])
+  @@index([isVerified])
+}
+
+model EmailAccount {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  domainId      String
+  domain        Domain   @relation(fields: [domainId], references: [id], onDelete: Cascade)
+  email         String   @unique
+  password      String   // Encrypted password for Mailu
+  displayName   String?
+  quotaUsed     Int      @default(0) // in bytes
+  quotaLimit    Int      @default(0) // in bytes, 0 means unlimited
+  isActive      Boolean  @default(true)
+  mailuSynced   Boolean  @default(false)
+  mailuSyncError String?
+  lastSyncAt    DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([userId])
+  @@index([domainId])
+  @@index([email])
+  @@index([isActive])
+}
+
+model Invoice {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount          Float
+  currency        String    @default("BRL")
+  status          String    // pending, paid, cancelled, refunded
+  plan            String
+  billingCycle    String
+  dueDate         DateTime
+  paidAt          DateTime?
+  mercadoPagoId   String?   // MercadoPago payment ID
+  externalRef     String?   // External reference
+  paymentMethod   String?   // credit_card, pix, bank_transfer, etc
+  invoiceUrl      String?   // URL to view/pay invoice
+  pdfUrl          String?   // URL to download PDF
+  notes           String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([dueDate])
+  @@index([mercadoPagoId])
+}
+
+model PaymentWebhook {
+  id           String   @id @default(cuid())
+  source       String   // mercadopago, stripe, etc
+  eventType    String
+  payload      String   // JSON string of the webhook payload
+  processed    Boolean  @default(false)
+  processedAt  DateTime?
+  error        String?
+  createdAt    DateTime @default(now())
+
+  @@index([source])
+  @@index([processed])
+  @@index([createdAt])
+}
+
+model MailuWebhook {
+  id           String   @id @default(cuid())
+  eventType    String
+  payload      String   // JSON string of the webhook payload
+  processed    Boolean  @default(false)
+  processedAt  DateTime?
+  error        String?
+  createdAt    DateTime @default(now())
+
+  @@index([processed])
+  @@index([createdAt])
+}
+
+model ActivityLog {
   id        String   @id @default(cuid())
-  title     String
-  content   String?
-  published Boolean  @default(false)
-  authorId  String
+  userId    String?
+  action    String
+  details   String?  // JSON string with additional details
+  ipAddress String?
+  userAgent String?
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
 }
