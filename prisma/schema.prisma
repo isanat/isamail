@@ -10,6 +10,77 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ===== ADMIN USERS =====
+model AdminUser {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  name          String
+  password      String
+  role          String   @default("admin") // super_admin, admin, support
+  avatar        String?
+  lastLoginAt   DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([email])
+}
+
+// ===== SYSTEM SETTINGS =====
+model SystemSetting {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String   // JSON string for complex values
+  description String?
+  updatedAt   DateTime @updatedAt
+
+  @@index([key])
+}
+
+// ===== PLANS (Planos disponíveis) =====
+model Plan {
+  id              String   @id @default(cuid())
+  name            String   @unique // basic, standard, premium, enterprise
+  displayName     String
+  description     String?
+  monthlyPrice    Float
+  yearlyPrice     Float
+  emailAccounts   Int      @default(1) // -1 for unlimited
+  storagePerAccount Int    @default(5) // in GB, -1 for unlimited
+  features        String   // JSON array of features
+  isActive        Boolean  @default(true)
+  sortOrder       Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  subscriptions   Subscription[]
+
+  @@index([name])
+  @@index([isActive])
+}
+
+// ===== PARTNER COMPANIES (Empresas Parceiras/Revendedoras) =====
+model Partner {
+  id              String   @id @default(cuid())
+  name            String
+  email           String   @unique
+  phone           String?
+  companyDoc      String?  // CNPJ
+  contactName     String?
+  commission      Float    @default(10) // percentage
+  status          String   @default("pending") // pending, active, suspended
+  notes           String?
+  customDomain    String?  // Domain for white-label
+  logo            String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  users           User[]
+
+  @@index([email])
+  @@index([status])
+}
+
+// ===== CUSTOMERS =====
 model User {
   id            String         @id @default(cuid())
   email         String         @unique
@@ -18,6 +89,8 @@ model User {
   phone         String?
   avatar        String?
   notifications Boolean        @default(true)
+  partnerId     String?
+  partner       Partner?       @relation(fields: [partnerId], references: [id], onDelete: SetNull)
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   subscription  Subscription?
@@ -26,15 +99,18 @@ model User {
   invoices      Invoice[]
 
   @@index([email])
+  @@index([partnerId])
 }
 
 model Subscription {
   id                String   @id @default(cuid())
   userId            String   @unique
   user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  plan              String   // basic, standard, premium, enterprise
+  planId            String?
+  planRef           Plan?    @relation(fields: [planId], references: [id])
+  plan              String   // basic, standard, premium, enterprise (legacy compatibility)
   billingCycle      String   // monthly, yearly
-  status            String   // active, cancelled, expired, pending
+  status            String   // active, cancelled, expired, pending, trial
   currentPeriodStart DateTime
   currentPeriodEnd   DateTime
   cancelAtPeriodEnd  Boolean @default(false)
@@ -44,6 +120,7 @@ model Subscription {
 
   @@index([status])
   @@index([userId])
+  @@index([planId])
 }
 
 model Domain {
@@ -121,6 +198,7 @@ model Invoice {
   @@index([mercadoPagoId])
 }
 
+// ===== PAYMENT & WEBHOOKS =====
 model PaymentWebhook {
   id           String   @id @default(cuid())
   source       String   // mercadopago, stripe, etc
@@ -149,6 +227,7 @@ model MailuWebhook {
   @@index([createdAt])
 }
 
+// ===== ACTIVITY & LOGS =====
 model ActivityLog {
   id        String   @id @default(cuid())
   userId    String?
@@ -161,4 +240,50 @@ model ActivityLog {
   @@index([userId])
   @@index([action])
   @@index([createdAt])
+}
+
+// ===== SUPPORT TICKETS =====
+model SupportTicket {
+  id          String   @id @default(cuid())
+  userId      String
+  subject     String
+  message     String
+  status      String   @default("open") // open, in_progress, resolved, closed
+  priority    String   @default("normal") // low, normal, high, urgent
+  assignedTo  String?  // Admin user ID
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  replies     SupportTicketReply[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([assignedTo])
+}
+
+model SupportTicketReply {
+  id          String   @id @default(cuid())
+  ticketId    String
+  ticket      SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  userId      String?  // null if from admin
+  adminId     String?  // null if from user
+  message     String
+  createdAt   DateTime @default(now())
+
+  @@index([ticketId])
+}
+
+// ===== NOTIFICATIONS =====
+model Notification {
+  id          String   @id @default(cuid())
+  userId      String?  // null for global notifications
+  title       String
+  message     String
+  type        String   @default("info") // info, warning, success, error
+  isRead      Boolean  @default(false)
+  link        String?
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([isRead])
 }
