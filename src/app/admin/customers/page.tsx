@@ -105,14 +105,14 @@ export default function AdminCustomersPage() {
   const [partners, setPartners] = useState<Partner[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [newCustomer, setNewCustomer] = useState({
     name: "",
     email: "",
     password: "",
     phone: "",
-    partnerId: "",
+    partnerId: "none",
     plan: "basic",
     billingCycle: "monthly",
   });
@@ -128,7 +128,7 @@ export default function AdminCustomersPage() {
     try {
       const params = new URLSearchParams();
       if (search) params.append("search", search);
-      if (statusFilter) params.append("status", statusFilter);
+      if (statusFilter && statusFilter !== "all") params.append("status", statusFilter);
 
       const response = await fetch(`/api/admin/customers?${params}`);
       if (response.status === 401) {
@@ -164,7 +164,10 @@ export default function AdminCustomersPage() {
       const response = await fetch("/api/admin/customers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newCustomer),
+        body: JSON.stringify({
+          ...newCustomer,
+          partnerId: newCustomer.partnerId === "none" ? "" : newCustomer.partnerId,
+        }),
       });
 
       const data = await response.json();
@@ -184,7 +187,7 @@ export default function AdminCustomersPage() {
         email: "",
         password: "",
         phone: "",
-        partnerId: "",
+        partnerId: "none",
         plan: "basic",
         billingCycle: "monthly",
       });
@@ -387,7 +390,7 @@ export default function AdminCustomersPage() {
                         <SelectValue placeholder="Nenhum" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Nenhum</SelectItem>
+                        <SelectItem value="none">Nenhum</SelectItem>
                         {partners.map((partner) => (
                           <SelectItem key={partner.id} value={partner.id}>
                             {partner.name}
@@ -427,7 +430,7 @@ export default function AdminCustomersPage() {
                 <SelectValue placeholder="Todos os status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos</SelectItem>
+                <SelectItem value="all">Todos</SelectItem>
                 <SelectItem value="active">Ativos</SelectItem>
                 <SelectItem value="trial">Trial</SelectItem>
                 <SelectItem value="pending">Pendentes</SelectItem>
